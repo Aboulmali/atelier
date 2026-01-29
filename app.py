@@ -46,7 +46,12 @@ def trigger_pipeline():
 
     # GitHub renvoie 204 (No Content) quand le workflow est déclenché avec succès
     if response.status_code == 204:
-        return "✅ Workflow déclenché (204)", 200
+        actions_url = f"https://github.com/{owner}/{repo}/actions/workflows/{workflow_file}"
+        return (
+            "✅ Demande envoyée à GitHub Actions. "
+            f"Suivi: <a href=\"{actions_url}\" target=\"_blank\" rel=\"noopener\">{actions_url}</a>",
+            200,
+        )
     else:
         return f"❌ Erreur: {response.status_code}<br>{response.text}", response.status_code
 
