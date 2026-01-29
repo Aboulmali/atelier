@@ -72,6 +72,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID || secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY || secrets.AWS_SECRET_KEY }}
+
+      - name: Debug AWS identity
+        run: |
+          aws sts get-caller-identity
+          aws configure list
       
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -93,3 +98,7 @@ jobs:
       - name: Terraform Apply
         working-directory: ./infra
         run: terraform apply -auto-approve -input=false
+
+      - name: Terraform Outputs
+        working-directory: ./infra
+        run: terraform output
