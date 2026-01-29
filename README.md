@@ -43,6 +43,8 @@ Dans les **Secrets** du repo GitHub, ajoute :
 
 Le workflow est déclenché via `workflow_dispatch` et passe les variables Terraform via `TF_VAR_*`.
 
+En plus, un job `validate` tourne automatiquement sur `push`/`pull_request` (init + validate) pour que tu voies tout de suite des runs dans l'onglet Actions sans créer de ressources.
+
 ## Note importante (state Terraform)
 
 Actuellement, l'état Terraform n'est pas stocké dans un backend distant. Sur GitHub Actions, l'état est perdu à chaque run, donc les runs suivants peuvent recréer des ressources.
