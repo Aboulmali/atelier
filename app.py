@@ -1,0 +1,54 @@
+from flask import Flask, request, render_template
+import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Charge les variables du fichier .env
+
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return render_template("form.html")
+
+@app.route("/trigger", methods=["POST"])
+def trigger_pipeline():
+    github_token = os.getenv("GITHUB_TOKEN")  # PAT avec permission de déclencher les workflows
+    owner = os.getenv("GITHUB_OWNER")
+    repo = os.getenv("GITHUB_REPO")
+    workflow_file = os.getenv("GITHUB_WORKFLOW_FILE", "terraform.yml")
+    ref = os.getenv("GITHUB_REF", "main")
+
+    if not github_token:
+        return "❌ GITHUB_TOKEN manquant (voir .env)", 500
+    if not owner or not repo:
+        return "❌ GITHUB_OWNER / GITHUB_REPO manquants (voir .env)", 500
+    
+    url = f"https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_file}/dispatches"
+    
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {github_token}",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+    
+    data = {
+        "ref": ref,
+        "inputs": {
+            "instance_name": request.form["instance_name"],
+            "instance_os": request.form["instance_os"],
+            "instance_size": request.form["instance_size"],
+            "instance_env": request.form["instance_env"]
+        }
+    }
+    
+    response = requests.post(url, json=data, headers=headers)
+
+    # GitHub renvoie 204 (No Content) quand le workflow est déclenché avec succès
+    if response.status_code == 204:
+        return "✅ Workflow déclenché (204)", 200
+    else:
+        return f"❌ Erreur: {response.status_code}<br>{response.text}", response.status_code
+
+if __name__ == "__main__":
+    app.run(debug=True)
